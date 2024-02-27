@@ -1,0 +1,11 @@
+google:
+    client-id: 439847719014-pkff4061t2kdmokun7m3iggr6isgpea6.apps.googleusercontent.com
+    client-secrets: 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
+
+cloudinary.api:
+    key: 158194746611984
+    name: dpjd9bfte
+    secret: R4R1-Xrj5KIs57oY_pkbxRnn1Ak
+
+file:
+    upload-file: ./uploads
