@@ -3,6 +3,6 @@
 venv*/
 ENV*/
 
-#file
-*.pkl
-**/*.pkl
+# #file
+# *.pkl
+# **/*.pkl
