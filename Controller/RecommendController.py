@@ -2,10 +2,14 @@ from flask import Blueprint, request , jsonify ,json, Response, abort
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
+import os
 RecommendController = Blueprint('RecommendController', __name__ , url_prefix="/AI/recommend")
 
 
-jobs = pd.read_csv('data/ExportPost.csv', delimiter=';')
+current_directory = os.path.dirname(os.path.abspath(__file__))
+csv_path = os.path.join(current_directory, 'data', 'ExportPost.csv')
+
+jobs = pd.read_csv(csv_path, delimiter=';')
 jobs['tags'] = jobs['jobField'] + " " + jobs['descrition'] +" " +jobs['requirements']
 new_data = jobs.drop(columns =[ 'comanyId','comanyName','exerience' ])
 cv = CountVectorizer(max_features=4768, stop_words='english')
@@ -42,7 +46,7 @@ def Job():
 
 @RecommendController.route("/skill", methods = ['POST'])
 def skillRecommend():
-    try:
+    # try:
         your_skills = request.json['name']
         requirements_list = jobs['requirements'].tolist()
         requirements_list.insert(4769, your_skills)
@@ -58,7 +62,7 @@ def skillRecommend():
         converted_list = [convert_int64_to_int(value) for value in job_recommend]
         json_object = {"ids": converted_list}
         return json.dumps(json_object, ensure_ascii=False)
-    except:
-        json_object = {"ids": []}
-        json_data = json.dumps(json_object)
-        return json_data
+    # except:
+    #     json_object = {"ids": []}
+    #     json_data = json.dumps(json_object)
+    #     return json_data
