@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y python3 python3-pip cmake && python3 -m
 # Additional checks and dependencies
 RUN cmake --version
 
-RUN pip3 install --no-cache dm-tree==<specific_version>
+RUN pip3 install --no-cache dm-tree
 
 ADD . /app/
 
