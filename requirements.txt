@@ -5,3 +5,4 @@ rasa
 pandas
 CountVectorizer
 cosine_similarity
+gunicorn
