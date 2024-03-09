@@ -3,13 +3,11 @@ import pickle
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
-import os
 RecommendController = Blueprint('RecommendController', __name__ , url_prefix="/AI/recommend")
 
 
-# current_directory = os.path.dirname(os.path.abspath(__file__))
-# csv_path = os.path.join(current_directory, '..', 'data', 'Export.csv')
-jobs = pd.read_csv("/app/data/ExportPost.csv", delimiter=';')
+
+jobs = pd.read_csv("ExportPost.csv", delimiter=';')
 jobs['tags'] = jobs['jobField'] + " " + jobs['descrition'] +" " +jobs['requirements']
 new_data = jobs.drop(columns =[ 'comanyId','comanyName','exerience' ])
 cv = CountVectorizer(max_features=4768, stop_words='english')
