@@ -6,9 +6,9 @@ import pandas as pd
 RecommendController = Blueprint('RecommendController', __name__ , url_prefix="/AI/recommend")
 
 
-jobs = pickle.load(open("jobs_list.pkl" , 'rb'))
+jobs = pickle.load(open("../jobs_list.pkl" , 'rb'))
 
-similarity = pickle.load(open("similarity.pkl", 'rb'))
+similarity = pickle.load(open("../similarity.pkl", 'rb'))
 
 
 def convert_int64_to_int(value):
