@@ -23,8 +23,8 @@ public class WorkExperience {
     private Date timeStart;
     @Column
     private Date timeEnd;
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String position;
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String description;
 }

@@ -16,7 +16,7 @@ public class PostResponse {
     private String requirements;
     private Long createAt;
     private Long exprires;
-    private int salary;
+    private String salary;
     private String company;
     private String field;
     private String employeer;

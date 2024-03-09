@@ -9,3 +9,6 @@ cloudinary.api:
 
 file:
     upload-file: ./uploads
+    csv: ./file
+AI:
+    recommendUrl: http://127.0.0.1:6868/AI/recommend/

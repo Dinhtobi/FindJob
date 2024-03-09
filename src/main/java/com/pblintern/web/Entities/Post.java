@@ -18,31 +18,31 @@ public class Post {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String name;
     @Column
     private String level;
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String experience;
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String requirements;
     @Column
     private Date createAt;
     @Column
     private Date expire;
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String description;
     @Column
-    private int salary;
+    private String salary;
     @Column
     private int views;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "company_id")
     private Company company;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "field_id")
     private FieldOfActivity fieldOfActivity;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "employer_id")
     private Employer employer;
 

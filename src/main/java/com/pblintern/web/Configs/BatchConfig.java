@@ -74,7 +74,7 @@ public class BatchConfig {
 
     @Bean
     public FlatFileItemWriter<CSVRequest> csvWriter(){
-        BeanWrapperFieldExtractor<CSVRequest> fieldExtractor = new BeanWrapperFieldExtractor<>();
+        BeanWrapperFieldExtractor<CSVRequest> fieldExtractor = new BeanWrapperFieldExtractor<CSVRequest>();
         fieldExtractor.setNames(new String[] {"id", "name", "comanyId", "comanyName", "jobField", "salary", "exerience" , "level" ,"exire" ,"descrition" ,"requirements"});
         fieldExtractor.afterPropertiesSet();
 
@@ -85,7 +85,7 @@ public class BatchConfig {
                 .name("CSVExportPost")
                 .resource(new FileSystemResource("./file//ExportPost.csv"))
                 .lineAggregator(lineAggregator)
-                .headerCallback(writer -> writer.write("id;location;offer;requirements;salary;title"))
+                .headerCallback(writer -> writer.write("id;name;comanyId;comanyName;jobField;salary;exerience;level;exire;descrition;requirements"))
                 .build();
     }
 }

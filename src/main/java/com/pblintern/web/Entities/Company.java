@@ -19,10 +19,12 @@ public class Company {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
     @Column
+    private String idCompany;
+    @Column
     private String name;
     @Column
     private String webSite;
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String location;
     @Column
     private String companySize;
@@ -38,7 +40,7 @@ public class Company {
     private String businessLicenseImg;
     @Column
     private String logo;
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String description;
 
 }

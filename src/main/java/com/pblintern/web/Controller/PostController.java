@@ -25,4 +25,15 @@ public class PostController {
     public ResponseEntity<?> getPost(@PathVariable int id){
         return ResponseEntity.ok(postService.getPost(id));
     }
+
+    @GetMapping("/field")
+    public ResponseEntity<?> recommendPostInteractive(){
+        return ResponseEntity.ok(postService.recommendFromInteractive());
+    }
+
+    @GetMapping("/skill")
+    public ResponseEntity<?> recommendPostSkill(){
+        return ResponseEntity.ok(postService.recommendFromSkill());
+    }
+
 }

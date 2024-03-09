@@ -14,10 +14,23 @@ public class CSVRequest {
     private int comanyId;
     private String comanyName;
     private String jobField;
-    private int salary;
+    private String salary;
     private String exerience;
     private String level;
     private Date exire;
-    private String descrition;
+    private String description;
     private String requirements;
+
+
+    public String getName() {
+        return name != null ? "\"" + name.replaceAll("[\\r\\n]+", " ").replaceAll("\"", "\"\"") + "\"" : null;
+    }
+
+    public String getDescrition() {
+        return description != null ? "\"" + description.replaceAll("[\\r\\n]+", " ").replaceAll("\"", "\"\"") + "\"" : null;
+    }
+
+    public String getRequirements() {
+        return requirements != null ? "\"" + requirements.replaceAll("[\\r\\n]+", " ").replaceAll("\"", "\"\"") + "\"" : null;
+    }
 }

@@ -24,9 +24,9 @@ public class PostMapper implements RowMapper<CSVRequest> {
         post.setExerience(rs.getString(constant.EXPERIENCE_COLUMN));
         post.setLevel(rs.getString(constant.LEVEL_COLUMN));
         post.setExire(rs.getDate(constant.EXPIRE_COLUMN));
-        post.setDescrition(rs.getString(constant.DESCRIPTION_COLUMN));
+        post.setDescription(rs.getString(constant.DESCRIPTION_COLUMN));
         post.setRequirements(rs.getString(constant.REQUIREMENTS_COLUMN));
-        post.setSalary(rs.getInt(constant.SALARY_COLUMN));
+        post.setSalary(rs.getString(constant.SALARY_COLUMN));
         return post;
     }
 }

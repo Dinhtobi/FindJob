@@ -10,6 +10,18 @@ public class FileStorageProperties {
     @Value("${file.upload-file}")
     private String uploadFile;
 
+    @Value("${file.csv}")
+    private String fileCSV;
+
+
+    public String getFileCSV() {
+        return fileCSV;
+    }
+
+    public void setFileCSV(String fileCSV) {
+        this.fileCSV = fileCSV;
+    }
+
     public String getUploadFIle(){
         return uploadFile;
     }
