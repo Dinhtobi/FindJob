@@ -1,5 +1,4 @@
 from typing import Any, Text, Dict, List
-import pickle
 from rasa_sdk import Action, Tracker
 from rasa_sdk.events import SlotSet
 from rasa_sdk.executor import CollectingDispatcher
@@ -7,11 +6,12 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
 
-print(pickle.format_version)
-jobs = pickle.load(open("jobs_list.pkl" , 'rb'))
-
-similarity = pickle.load(open("similarity.pkl", 'rb'))
-
+jobs = pd.read_csv('data/ExportPost.csv', delimiter=';')
+jobs['tags'] = jobs['jobField'] + " " + jobs['descrition'] +" " +jobs['requirements']
+new_data = jobs.drop(columns =[ 'comanyId','comanyName','exerience' ])
+cv = CountVectorizer(max_features=4768, stop_words='english')
+vector = cv.fit_transform(new_data['tags'].values.astype('U')).toarray()
+similarity = cosine_similarity(vector)
 class ExtractJobEntity(Action):
 
     def name(self) -> Text:

@@ -1,14 +1,16 @@
 from flask import Blueprint, request , jsonify ,json, Response, abort
-import pickle
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
 RecommendController = Blueprint('RecommendController', __name__ , url_prefix="/AI/recommend")
 
 
-jobs = pickle.load(open("jobs_list.pkl" , 'rb'))
-
-similarity = pickle.load(open("similarity.pkl", 'rb'))
+jobs = pd.read_csv('data/ExportPost.csv', delimiter=';')
+jobs['tags'] = jobs['jobField'] + " " + jobs['descrition'] +" " +jobs['requirements']
+new_data = jobs.drop(columns =[ 'comanyId','comanyName','exerience' ])
+cv = CountVectorizer(max_features=4768, stop_words='english')
+vector = cv.fit_transform(new_data['tags'].values.astype('U')).toarray()
+similarity = cosine_similarity(vector)
 
 
 def convert_int64_to_int(value):
