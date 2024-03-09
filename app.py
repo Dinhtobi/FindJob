@@ -2,7 +2,7 @@ from flask import Flask , request ,render_template , jsonify
 import requests
 from flask_cors import CORS , cross_origin
 from Controller.RecommendController import RecommendController
-RASA_API_URL = 'http://localhost:5005/webhooks/rest/webhook'
+RASA_API_URL = 'http://deafening-arch-production.up.railway.app/webhooks/rest/webhook'
 
 app = Flask(__name__)
 CORS(app)

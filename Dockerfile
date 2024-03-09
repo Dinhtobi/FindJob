@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y python3 python3-pip && python3 -m pip i
 RUN pip3 install --no-cache rasa
 RUN pip3 install --no-cache pandas
 ADD . /app/
-
+RUN pip install -r requirements.txt
 RUN chmod +x /app/server.sh
 CMD /app/server.sh
 CMD ["python3", "/app/app.py"]
