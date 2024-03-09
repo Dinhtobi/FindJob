@@ -5,7 +5,7 @@ from rasa_sdk.events import SlotSet
 from rasa_sdk.executor import CollectingDispatcher
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-
+import pandas as pd
 jobs = pickle.load(open("../jobs_list.pkl" , 'rb'))
 
 similarity = pickle.load(open("../similarity.pkl", 'rb'))
