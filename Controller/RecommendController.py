@@ -7,7 +7,7 @@ RecommendController = Blueprint('RecommendController', __name__ , url_prefix="/A
 
 
 
-jobs = pd.read_csv("ExportPost.csv", delimiter=';')
+jobs = pd.read_csv("data/ExportPost.csv", delimiter=';')
 jobs['tags'] = jobs['jobField'] + " " + jobs['descrition'] +" " +jobs['requirements']
 new_data = jobs.drop(columns =[ 'comanyId','comanyName','exerience' ])
 cv = CountVectorizer(max_features=4768, stop_words='english')
