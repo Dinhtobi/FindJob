@@ -3,6 +3,4 @@ flask_cors
 pandas
 rasa
 pandas
-CountVectorizer
-cosine_similarity
 gunicorn
