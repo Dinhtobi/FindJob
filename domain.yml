@@ -1,0 +1,46 @@
+version: "3.1"
+
+intents:
+  - greet
+  - goodbye
+  - thanks
+  - find_job
+  - requirement_job
+  - inform_Field
+  - skill_job
+
+entities:
+  - field
+  - skill
+
+slots:
+  field:
+    type: text
+    influence_conversation: true
+    mappings:
+      - type: from_entity
+        entity: inform_Field
+
+responses:
+  utter_greet:
+  - text: "Hey! Bạn có yêu cầu gì?"
+
+  utter_goodbye:
+  - text: "Tạm biệt"
+
+  utter_thanks:
+  - text: "Không có gì! Tôi rất vui khi phục vụ bạn!"
+
+
+actions:
+  - action_extract_job_entity
+  - action_recommend_job
+  - action_inform_job_recommend
+  - action_requirement_job
+  - action_recommend_job_from_skill
+
+
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true

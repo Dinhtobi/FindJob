@@ -1,0 +1,18 @@
+version: "3.1"
+
+rules:
+
+- rule: Say goodbye anytime the user says goodbye
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye
+
+- rule: Say requirement when user says requirement
+  steps:
+  - intent: requirement_job
+  - action: action_requirement_job
+
+- rule: Say recommend job when user says have skill
+  steps:
+    - intent: skill_job
+    - action: action_recommend_job_from_skill

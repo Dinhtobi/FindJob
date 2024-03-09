@@ -1,0 +1,37 @@
+version: "3.1"
+
+stories:
+
+- story: happy path
+  steps:
+  - intent: greet
+  - action: utter_greet
+
+
+- story: Express Thanks
+  steps:
+  - intent: thanks
+  - action: utter_thanks
+
+- story: Find my job
+  steps:
+  - intent: find_job
+  - action: action_recommend_job
+  - intent: inform_Field
+  - action: action_inform_job_recommend
+  - intent: requirement_job
+  - action: action_requirement_job
+
+- story: requirement job
+  steps:
+  - intent: inform_Field
+  - action: action_inform_job_recommend
+  - intent: requirement_job
+  - action: action_requirement_job
+
+- story: skill job
+  steps:
+  - intent: find_job
+  - action: action_recommend_job
+  - intent: skill_job
+  - action: action_recommend_job_from_skill

@@ -1,0 +1,129 @@
+version: "3.1"
+
+nlu:
+- intent: greet
+  examples: |
+    - hey
+    - hello
+    - hi
+    - hello there
+    - good morning
+    - good evening
+    - Xin chào
+    - Chào bạn
+
+- intent: goodbye
+  examples: |
+    - cu
+    - good by
+    - cee you later
+    - good night
+    - bye
+    - Tạm biệt
+    - chào tạm biệt
+
+- intent: thanks
+  examples: |
+    - thanks
+    - thank you
+    - cảm ơn
+    - Xin cảm ơn
+    - cảm ơn đã giúp đỡ
+    - 
+
+- intent: find_job
+  examples: |
+    - Tôi muồn tìm việc 
+    - Có việc nào dành cho tôi không
+    - Chỉ tôi các công việc phù hợp với mình
+    - Tìm việc
+    - Tôi đang tìm việc
+
+- intent: inform_Field
+  examples: |
+    - [CNTT - Phần mềm](field)
+    - [Dịch vụ khách hàng](field)
+    - [Tiếp thị / Marketing](field)
+    - [Cơ khí / Ô tô / Tự động hóa](field)
+    - [Y tế / Chăm sóc sức khỏe](field)
+    - [Quản lý điều hành](field)
+    - [Hành chính / Thư ký](field)
+    - [Thực phẩm & Đồ uống](field)
+    - [Nhân sự](field)
+    - [Đồ gỗ](field)
+    - [Điện / Điện tử / Điện lạnh](field)
+    - [Luật / Pháp lý](field)
+    - [Bán hàng / Kinh doanh](field)
+    - [Ngân hàng](field)
+    - [Kế toán / Kiểm toán](field)
+    - [Dược phẩm](field)
+    - [Bán lẻ / Bán sỉ](field)
+    - [Quản lý chất lượng](field)
+    - [Giáo dục / Đào tạo](field)
+    - [Thu mua / Vật tư](field)
+    - [Chứng khoán](field)
+    - [CNTT - Phần cứng / Mạng](field)
+    - [Sản xuất / Vận hành sản xuất](field)
+    - [In ấn / Xuất bản](field)
+    - [Mỹ thuật / Nghệ thuật / Thiết kế](field)
+    - [Xây dựng](field)
+    - [Dệt may / Da giày / Thời trang](field)
+    - [Môi trường](field)
+    - [Xuất nhập khẩu](field)
+    - [Biên phiên dịch](field)
+    - [Hàng gia dụng / Chăm sóc cá nhân](field)
+    - [Tổ chức sự kiện](field)
+    - [Hóa học](field)
+    - [An toàn lao động](field)
+    - [Bảo trì / Sửa chữa](field)
+    - [Công nghệ sinh học](field)
+    - [Nông nghiệp](field)
+    - [Bảo hiểm](field)
+    - [Kiến trúc](field)
+    - [Nhà hàng / Khách sạn](field)
+    - [Tư vấn](field)
+    - [Bưu chính viễn thông](field)
+    - [Vận chuyển / Giao nhận / Kho vận](field)
+    - [Trắc địa / Địa Chất](field)
+    - [Dầu khí](field)
+    - [Công nghệ thực phẩm / Dinh dưỡng](field)
+    - [Bất động sản](field)
+    - [Tài chính / Đầu tư](field)
+    - [Truyền hình / Báo chí / Biên tập](field)
+    - [Ngành khác](field)
+    - [Nội ngoại thất](field)
+    - [Thủy sản / Hải sản](field)
+    - [Tiếp thị trực tuyến](field)
+    - [Lao động phổ thông](field)
+    - [Quảng cáo / Đối ngoại / Truyền Thông](field)
+    - [Lâm Nghiệp](field)
+    - [Giải trí](field)
+    - [Chăn nuôi / Thú y](field)
+    - [Mới tốt nghiệp / Thực tập](field)
+    - [Hàng không](field)
+    - [Khoáng sản](field)
+    - [An Ninh / Bảo Vệ](field)
+    - [Du lịch](field)
+    - [Phi chính phủ / Phi lợi nhuận](field)
+    - [Hàng hải](field)
+    - [Thủy lợi](field)
+    
+
+- intent: requirement_job
+  examples: |
+    - Yêu cầu
+    - Những công việc này cần kỹ năng gì
+    - Công việc này yêu cầu gì
+    - Những thứ cần có để ứng tuyển việc này
+    - Yêu cầu ứng tuyển
+    - Tôi cần những thứ gì cho những việc này
+    - Việc này cần gì
+    - Chỉ tôi những yêu cầu công việc
+
+
+- intent: skill_job
+  examples: |
+    - Tôi có các kỹ năng như [Dịch vụ/chăm sóc khách hàng](skill)
+    - Các kỹ năng của tôi [Thành thạo vi tính văn phòng, các phần mềm, ứng dụng](skill)
+    - Tôi biết các kỹ năng như [LẬP TRÌNH WEB .NET](skill)
+    - Kỹ năng mà tôi có là [LẬP TRÌNH WEB .NET](skill)

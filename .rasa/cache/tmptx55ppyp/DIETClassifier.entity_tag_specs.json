@@ -1,0 +1,28 @@
+[
+  {
+    "tag_name": "entity",
+    "ids_to_tags": {
+      "1": "B-field",
+      "2": "I-field",
+      "3": "L-field",
+      "4": "U-field",
+      "5": "B-skill",
+      "6": "I-skill",
+      "7": "L-skill",
+      "8": "U-skill",
+      "0": "O"
+    },
+    "tags_to_ids": {
+      "B-field": 1,
+      "I-field": 2,
+      "L-field": 3,
+      "U-field": 4,
+      "B-skill": 5,
+      "I-skill": 6,
+      "L-skill": 7,
+      "U-skill": 8,
+      "O": 0
+    },
+    "num_tags": 9
+  }
+]
