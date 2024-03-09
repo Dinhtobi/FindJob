@@ -1,20 +1,20 @@
 from flask import Blueprint, request , jsonify ,json, Response, abort
+import pickle
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
+import os
 RecommendController = Blueprint('RecommendController', __name__ , url_prefix="/AI/recommend")
 
 
 current_directory = os.path.dirname(os.path.abspath(__file__))
-
-# Xây dựng đường dẫn đầy đủ đến file CSV trong thư mục "data"
 csv_path = os.path.join(current_directory, '..', 'data', 'Export.csv')
+jobs = pd.read_csv(csv_path, delimiter=';')
 jobs['tags'] = jobs['jobField'] + " " + jobs['descrition'] +" " +jobs['requirements']
 new_data = jobs.drop(columns =[ 'comanyId','comanyName','exerience' ])
 cv = CountVectorizer(max_features=4768, stop_words='english')
 vector = cv.fit_transform(new_data['tags'].values.astype('U')).toarray()
 similarity = cosine_similarity(vector)
-
 
 def convert_int64_to_int(value):
     return int(value)
