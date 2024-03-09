@@ -8,4 +8,4 @@ ADD . /app/
 
 RUN chmod +x /app/server.sh
 CMD /app/server.sh
-CMD ["python3", "app.py"]
+CMD ["python3", "/app/app.py"]
