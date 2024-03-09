@@ -6,9 +6,9 @@ from rasa_sdk.executor import CollectingDispatcher
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 
-jobs = pickle.load(open("jobs_list.pkl" , 'rb'))
+jobs = pickle.load(open("../jobs_list.pkl" , 'rb'))
 
-similarity = pickle.load(open("similarity.pkl", 'rb'))
+similarity = pickle.load(open("../similarity.pkl", 'rb'))
 
 class ExtractJobEntity(Action):
 
