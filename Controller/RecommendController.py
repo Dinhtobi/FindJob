@@ -7,9 +7,9 @@ import os
 RecommendController = Blueprint('RecommendController', __name__ , url_prefix="/AI/recommend")
 
 
-current_directory = os.path.dirname(os.path.abspath(__file__))
-csv_path = os.path.join(current_directory, '..', 'data', 'Export.csv')
-jobs = pd.read_csv(csv_path, delimiter=';')
+# current_directory = os.path.dirname(os.path.abspath(__file__))
+# csv_path = os.path.join(current_directory, '..', 'data', 'Export.csv')
+jobs = pd.read_csv("/app/data/ExportPost.csv", delimiter=';')
 jobs['tags'] = jobs['jobField'] + " " + jobs['descrition'] +" " +jobs['requirements']
 new_data = jobs.drop(columns =[ 'comanyId','comanyName','exerience' ])
 cv = CountVectorizer(max_features=4768, stop_words='english')
