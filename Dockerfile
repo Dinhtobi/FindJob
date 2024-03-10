@@ -9,8 +9,7 @@ RUN pip3 install --no-cache flask flask_cors
 ADD . /app/
 
 WORKDIR /app
-#COPY data /app/data
+COPY data /app/data
 
 RUN chmod +x /app/server.sh
 CMD /app/server.sh
-# CMD ["python3", "/app/app.py"]
