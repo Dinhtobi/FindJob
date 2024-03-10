@@ -7,11 +7,8 @@ RUN pip3 install --no-cache pandas
 RUN pip3 install --no-cache flask
 RUN pip3 install --no-cache flask flask_cors
 ADD . /app/
-
-WORKDIR /app
-
-COPY . /app
+#COPY data /app/data
 
 RUN chmod +x /app/server.sh
 CMD /app/server.sh
-CMD ["python3", "/app/app.py"]
+# CMD ["python3", "/app/app.py"]
