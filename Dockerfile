@@ -6,6 +6,7 @@ RUN pip3 install --no-cache rasa==3.1
 RUN pip3 install --no-cache pandas
 RUN pip3 install --no-cache flask
 RUN pip3 install --no-cache flask flask_cors
+RUN pip3 install websockets==10.0
 ADD . /app/
 
 # WORKDIR /app
