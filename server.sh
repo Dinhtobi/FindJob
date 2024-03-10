@@ -4,4 +4,4 @@ cd app/ && rasa shell
 
 cd /app && rasa run actions -p $PORT
 
-cd /app && python3 app -p $PORT
+cd /app && python3 app.py -p $PORT
