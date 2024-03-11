@@ -17,12 +17,13 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @EnableWebSecurity
 @ComponentScan("com.pblintern.web.security.Authentication")
-public class WebConfig {
+public class WebConfig implements WebMvcConfigurer{
 
     @Autowired
     private GoogleEntrypoint googleEntrypoint;
