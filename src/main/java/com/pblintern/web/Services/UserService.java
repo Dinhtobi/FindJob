@@ -2,6 +2,7 @@ package com.pblintern.web.Services;
 
 import com.pblintern.web.Entities.User;
 import com.pblintern.web.Enums.RoleEnum;
+import com.pblintern.web.Payload.Requests.CVRequest;
 import com.pblintern.web.Payload.Requests.RegisterEmployerRequest;
 import com.pblintern.web.Payload.Requests.SeekerRequest;
 import com.pblintern.web.Payload.Requests.UserRequest;
@@ -25,4 +26,6 @@ public interface UserService {
     User getByEmail(String email);
 
     User updateUserInfo(UserRequest userRequest, int id);
+
+
 }

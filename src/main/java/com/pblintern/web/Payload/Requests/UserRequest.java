@@ -19,7 +19,6 @@ public class UserRequest {
     private String phoneNumber;
     @NotBlank
     private String email;
-
     boolean gender;
     @NotBlank
     private String dateOfBirth;

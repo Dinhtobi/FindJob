@@ -24,7 +24,7 @@ public class AccountController {
     }
 
     @PostMapping("/employeer")
-    public ResponseEntity<?> registerEmployeer(@ModelAttribute @Valid RegisterEmployerRequest req){
+    public ResponseEntity<?> registerEmployeer(@ModelAttribute   @Valid RegisterEmployerRequest req){
         return ResponseEntity.ok(userService.registerEmployeer(req));
     }
 

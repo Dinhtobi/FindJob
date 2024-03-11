@@ -11,6 +11,5 @@ import java.util.List;
 @NoArgsConstructor
 public class SeekerRequest extends UserRequest {
     private String address;
-    private List<SkillRequest> skills;
-    private List<WorkExperienceRequest> workExperiences;
+
 }

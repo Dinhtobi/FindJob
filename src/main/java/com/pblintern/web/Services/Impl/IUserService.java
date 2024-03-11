@@ -5,10 +5,7 @@ import com.pblintern.web.Entities.*;
 import com.pblintern.web.Enums.RoleEnum;
 import com.pblintern.web.Exceptions.BadRequestException;
 import com.pblintern.web.Exceptions.NotFoundException;
-import com.pblintern.web.Payload.Requests.RegisterEmployerRequest;
-import com.pblintern.web.Payload.Requests.SeekerRequest;
-import com.pblintern.web.Payload.Requests.SkillRequest;
-import com.pblintern.web.Payload.Requests.UserRequest;
+import com.pblintern.web.Payload.Requests.*;
 import com.pblintern.web.Payload.Responses.BaseResponse;
 import com.pblintern.web.Payload.Responses.LoginResponse;
 import com.pblintern.web.Payload.Responses.RegisterEmployeerResponse;
@@ -16,6 +13,7 @@ import com.pblintern.web.Payload.Responses.SeekerResponse;
 import com.pblintern.web.Repositories.*;
 import com.pblintern.web.Services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -123,59 +121,7 @@ public class IUserService implements UserService {
         seeker.setUser(userSaved);
         seeker.setId(userSaved.getId());
         seeker.setAddress(registerSeekerRequest.getAddress());
-        if(registerSeekerRequest.getSkills() == null ){
-            seeker.setSkills(null);
-        }else{
-            Set<Skills> set = new HashSet<>();
-            List<SkillRequest> skills_unavailable = registerSeekerRequest.getSkills().stream().filter( skill -> !skillRepository.findByName(skill.getName()).isPresent()).collect(Collectors.toList());
-            skills_unavailable.stream().forEach(s -> {
-                Skills skill = new Skills();
-                skill.setName(s.getName());
-                skillRepository.save(skill);
-                set.add(skill);
-            });
-            registerSeekerRequest.getSkills().removeAll(skills_unavailable);
-            registerSeekerRequest.getSkills().stream().forEach(s -> {
-                Skills skill = skillRepository.findByName(s.getName()).get();
-                set.add(skill);
-            });
-            seeker.setSkills(set);
-        }
-        if(registerSeekerRequest.getWorkExperiences() == null){
-            seeker.setWorkExperiences(null);
-        }else {
 
-            Set<WorkExperience> workExperiences = new HashSet<>();
-            registerSeekerRequest.getWorkExperiences().stream().forEach(w -> {
-                WorkExperience workExperience = new WorkExperience();
-                workExperience.setName(w.getName());
-                workExperience.setPosition(w.getPosition());
-                workExperience.setDescription(w.getDescription());
-                if (w.getTimeStart() != null) {
-                    try {
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                        Date date = dateFormat.parse(w.getTimeStart());
-                        workExperience.setTimeStart(date);
-                    } catch (Exception e) {
-                        workExperience.setTimeStart(null);
-                    }
-                } else
-                    workExperience.setTimeStart(null);
-                if (w.getTimeEnd() != null) {
-                    try {
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
-                        Date date = dateFormat.parse(w.getTimeEnd());
-                        workExperience.setTimeEnd(date);
-                    } catch (Exception e) {
-                        workExperience.setTimeEnd(null);
-                    }
-                } else
-                    workExperience.setTimeEnd(null);
-                workExperiences.add(workExperience);
-                workExperienceRepository.save(workExperience);
-            });
-            seeker.setWorkExperiences(workExperiences);
-         }
         seekerRepository.save(seeker);
         return new SeekerResponse(seeker.getId(), userSaved.getFullName(),userSaved.getPhoneNumber(),userSaved.getEmail(),userSaved.getDateOfBirth().getTime(),
                                             userSaved.isGender(),userSaved.getAvatar(),seeker.getAddress(), seeker.getSkills() == null ? null :seeker.getSkills().stream().collect(Collectors.toList()),

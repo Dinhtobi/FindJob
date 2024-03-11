@@ -1,6 +1,7 @@
 package com.pblintern.web.Controller;
 
 
+import com.pblintern.web.Payload.Requests.CVRequest;
 import com.pblintern.web.Payload.Requests.SeekerRequest;
 import com.pblintern.web.Repositories.SkillRepository;
 import com.pblintern.web.Services.SeekerService;
@@ -19,15 +20,15 @@ public class SeekerController {
     @Autowired
     private SkillRepository skillRepository;
 
-    @GetMapping
-    public ResponseEntity<?> getAllSkill(){
-        return ResponseEntity.ok(skillRepository.findAll());
-    }
-
-
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('SEEKER')")
     public ResponseEntity<?> updateProfile(@PathVariable int id, SeekerRequest req){
         return ResponseEntity.ok(seekerService.updateSeeker(req,id));
+    }
+
+    @PostMapping("/")
+    @PreAuthorize("hasRole('SEEKER')")
+    public ResponseEntity<?> addCV(@RequestBody CVRequest cvRequest){
+        return ResponseEntity.ok(seekerService.addCV(cvRequest));
     }
 }
