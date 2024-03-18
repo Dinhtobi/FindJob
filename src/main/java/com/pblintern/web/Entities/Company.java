@@ -38,7 +38,7 @@ public class Company {
     private String taxCode;
     @Column
     private String businessLicenseImg;
-    @Column
+    @Column(columnDefinition = "TEXT")
     private String logo;
     @Column(columnDefinition = "TEXT")
     private String description;

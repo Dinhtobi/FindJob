@@ -50,7 +50,7 @@ public class ISeekerService implements SeekerService {
     public SeekerResponse updateSeeker(SeekerRequest req, int id) {
         Seeker seeker = seekerRepository.findById(id).orElseThrow(()-> new NotFoundException("Seeker not found!"));
 
-        User user = userService.updateUserInfo(new UserRequest(req.getFullName(),req.getPhoneNumber(),null, req.isGender(),req.getDateOfBirth(),req.getAvatar()), id);
+        User user = userService.updateUserInfo(new UserRequest(req.getFullName(),req.getPhoneNumber(), req.isGender(),req.getDateOfBirth(),req.getAvatar()), id);
 
         if(req.getAddress() != null)
             seeker.setAddress(req.getAddress());

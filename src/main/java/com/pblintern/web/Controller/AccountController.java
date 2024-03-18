@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -29,7 +30,8 @@ public class AccountController {
     }
 
     @GetMapping("/login")
-    public ResponseEntity<?> login(@RequestParam("email") String email){
+    public ResponseEntity<?> login(){
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return ResponseEntity.ok(userService.loadUser(email));
     }
 }

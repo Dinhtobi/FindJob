@@ -70,13 +70,14 @@ public class IUserService implements UserService {
 
     @Override
     public User registerUser(UserRequest registerUserRequest , RoleEnum roleEnum) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = new User();
         Date dateNow = new Date();
         user.setCreateAt(dateNow);
         user.setNonBlock(true);
         user.setFullName(registerUserRequest.getFullName());
         user.setPhoneNumber(registerUserRequest.getPhoneNumber());
-        user.setEmail(registerUserRequest.getEmail());
+        user.setEmail(email);
         user.setGender(registerUserRequest.isGender());
         if (registerUserRequest.getDateOfBirth() != null) {
             try {
@@ -105,19 +106,41 @@ public class IUserService implements UserService {
     @Override
     @Transactional
     public SeekerResponse registerSeeker(SeekerRequest registerSeekerRequest) {
-        Optional<User> user = userRepository.findByEmail(registerSeekerRequest.getEmail());
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<User> user = userRepository.findByEmail(email);
         if(user.isPresent()){
             throw new BadRequestException("User has been already registered");
         }
         User userSaved = user.orElseGet(() -> registerUser(new UserRequest(registerSeekerRequest.getFullName(),
                                                                             registerSeekerRequest.getPhoneNumber(),
-                                                                            registerSeekerRequest.getEmail(),
                                                                             registerSeekerRequest.isGender(),
                                                                             registerSeekerRequest.getDateOfBirth(),
                                                                             registerSeekerRequest.getAvatar()
                                                                             ),RoleEnum.SEEKER));
         userRepository.save(userSaved);
         Seeker seeker = new Seeker();
+        if(registerSeekerRequest.getSkills() == null ){
+            seeker.setSkills(null);
+        }else{
+            Set<Skills> set = new HashSet<>();
+            List<SkillRequest> skills = new ArrayList<>();
+            registerSeekerRequest.getSkills().stream().forEach(r -> {
+                skills.add(new SkillRequest(r.getValue()));
+            });
+            List<SkillRequest> skills_unavailable = skills.stream().filter( s -> !skillRepository.findByName(s.getName()).isPresent()).collect(Collectors.toList());
+            skills_unavailable.stream().forEach(s -> {
+                Skills skill = new Skills();
+                skill.setName(s.getName().toLowerCase());
+                skillRepository.save(skill);
+                set.add(skill);
+            });
+            skills.removeAll(skills_unavailable);
+            skills.stream().forEach(s -> {
+                Skills skill = skillRepository.findByName(s.getName().toLowerCase()).get();
+                set.add(skill);
+            });
+            seeker.setSkills(set);
+        }
         seeker.setUser(userSaved);
         seeker.setId(userSaved.getId());
         seeker.setAddress(registerSeekerRequest.getAddress());
@@ -132,13 +155,13 @@ public class IUserService implements UserService {
     @Override
     @Transactional
     public RegisterEmployeerResponse registerEmployeer(RegisterEmployerRequest registerEmployerRequest) {
-        Optional<User> user = userRepository.findByEmail(registerEmployerRequest.getEmail());
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Optional<User> user = userRepository.findByEmail(email);
         if(user.isPresent()){
             throw new BadRequestException("User has been already registered");
         }
         User userSaved = user.orElseGet(() -> registerUser(new UserRequest(registerEmployerRequest.getFullName(),
                 registerEmployerRequest.getPhoneNumber(),
-                registerEmployerRequest.getEmail(),
                 registerEmployerRequest.isGender(),
                 registerEmployerRequest.getDateOfBirth(),
                 registerEmployerRequest.getAvatar()

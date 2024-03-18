@@ -43,11 +43,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @Slf4j
@@ -242,6 +244,11 @@ public class IFileStorageService implements FileStorageService {
                 }else{
                     post.setCompany(null);
                 }
+                LocalDate startDate = LocalDate.of(2024, 2, 17);
+                LocalDate endDate = LocalDate.of(2024, 3, 17);
+
+                Date randomDate = generateRandomDate(startDate, endDate);
+                post.setCreateAt(randomDate);
                 Optional<FieldOfActivity> fieldOfActivityOptional = fieldRepository.findByName(row[4]);
                 if(fieldOfActivityOptional.isPresent()){
                     FieldOfActivity fieldOfActivity = fieldOfActivityOptional.get();
@@ -261,7 +268,6 @@ public class IFileStorageService implements FileStorageService {
                 }catch(Exception e){
                     post.setExpire(null);
                 }
-                post.setCreateAt(new Date());
                 Employer employer = employeerRepository.findById(2).orElseThrow(()-> new NotFoundException("Employer not found!"));
                 post.setEmployer(employer);
                 post.setDescription(row[9]);
@@ -270,6 +276,20 @@ public class IFileStorageService implements FileStorageService {
             }
             index++;
         }
+    }
+
+    public static Date convertToLocalDateViaInstant(LocalDate dateToConvert) {
+        return java.util.Date.from(dateToConvert.atStartOfDay()
+                .atZone(java.time.ZoneId.systemDefault())
+                .toInstant());
+    }
+
+    public static Date generateRandomDate(LocalDate startDate, LocalDate endDate) {
+        long startDay = startDate.toEpochDay();
+        long endDay = endDate.toEpochDay();
+        long randomDay = ThreadLocalRandom.current().nextLong(startDay, endDay);
+
+        return convertToLocalDateViaInstant(LocalDate.ofEpochDay(randomDay));
     }
 }
 

@@ -9,15 +9,18 @@ import java.util.Date;
 @AllArgsConstructor
 public class PostResponse {
 
+    private int id;
     private String name;
     private String level;
     private String description;
-    private String expericence;
+    private String experience;
     private String requirements;
-    private Long createAt;
-    private Long exprires;
+    private Date createAt;
+    private Date exprires;
     private String salary;
-    private String company;
+    private String companyName;
+    private String companyLogo;
+    private String companyLocation;
     private String field;
     private String employeer;
 }

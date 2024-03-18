@@ -51,7 +51,10 @@ public class GoogleProvider implements AuthenticationProvider {
                String email = payload.getEmail();
                Optional<User> userOptional = userRepository.findByEmail(email);
                if(userOptional.isEmpty()){
-                    return new UserSecurity(null,null);
+                   User user = new User();
+                   user.setEmail(email);
+                   user.setNonBlock(false);
+                   return new UserSecurity(user, null);
                }else{
                    User user = userOptional.get();
                    if(!user.isNonBlock()){
