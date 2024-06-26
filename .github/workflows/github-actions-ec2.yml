@@ -1,6 +1,6 @@
 name: Deploy Java to EC2
 
-# Trigger deployment only on push to master branch
+# Trigger deployment only on push to main branch
 on:
   push:
     branches:
@@ -24,7 +24,7 @@ jobs:
         run: mvn clean package
 
       - name: Deploy JAR to EC2
-        uses: easingthemes/ssh-deploy@main
+        uses: easingthemes/ssh-deploy@master
         env:
           SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
           REMOTE_HOST: ${{ secrets.HOST_DNS }}
@@ -32,7 +32,7 @@ jobs:
           TARGET: ${{ secrets.TARGET_DIR }}
         with:
           source: target/myapp.jar
-          target: /home/ec2-user/myapp.jar
+          target: /home/ubuntu/myapp.jar
 
       - name: Execute remote commands on EC2
         uses: appleboy/ssh-action@master
@@ -41,6 +41,6 @@ jobs:
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo yum update -y
-            sudo yum install -y java-11-amazon-corretto
-            java -jar /home/ec2-user/myapp.jar
+            sudo apt-get update
+            sudo apt-get install -y openjdk-11-jdk
+            java -jar /home/ubuntu/myapp.jar
