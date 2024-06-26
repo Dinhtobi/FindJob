@@ -1,38 +1,46 @@
-name: Push-to-EC2
+name: Deploy Java to EC2
 
-# Trigger deployment only on push to main branch
+# Trigger deployment only on push to master branch
 on:
   push:
     branches:
-      - deploy
+      - master
 
 jobs:
-  deploy:
-    name: Deploy to EC2 on master branch push
+  build-and-deploy:
+    name: Build and Deploy Java Application to EC2
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout the files
+      - name: Checkout repository
         uses: actions/checkout@v2
 
-      - name: Deploy to Server 1
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+
+      - name: Build with Maven
+        run: mvn clean package
+
+      - name: Deploy JAR to EC2
         uses: easingthemes/ssh-deploy@main
         env:
           SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_KEY }}
           REMOTE_HOST: ${{ secrets.HOST_DNS }}
           REMOTE_USER: ${{ secrets.USERNAME }}
           TARGET: ${{ secrets.TARGET_DIR }}
+        with:
+          source: target/myapp.jar
+          target: /home/ec2-user/myapp.jar
 
-      - name: Executing remote ssh commands using ssh key
+      - name: Execute remote commands on EC2
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST_DNS }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
-            sudo apt-get -y update
-            sudo apt-get install -y apache2
-            sudo systemctl start apache2
-            sudo systemctl enable apache2
-            cd home
-            sudo mv * /var/www/html
+            sudo yum update -y
+            sudo yum install -y java-11-amazon-corretto
+            java -jar /home/ec2-user/myapp.jar
