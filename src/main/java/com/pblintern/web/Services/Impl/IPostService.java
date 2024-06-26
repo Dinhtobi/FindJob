@@ -4,18 +4,13 @@ import com.pblintern.web.Entities.*;
 import com.pblintern.web.Enums.RoleEnum;
 import com.pblintern.web.Exceptions.BadRequestException;
 import com.pblintern.web.Exceptions.NotFoundException;
-import com.pblintern.web.Payload.DTO.RecommendPost;
-import com.pblintern.web.Payload.DTO.RequirementPost;
-import com.pblintern.web.Payload.Requests.PostRequest;
-import com.pblintern.web.Payload.Requests.RecommendRequest;
-import com.pblintern.web.Payload.Requests.SkillRequest;
-import com.pblintern.web.Payload.Responses.BaseResponse;
-import com.pblintern.web.Payload.Responses.PagedResponse;
-import com.pblintern.web.Payload.Responses.PostDetailResponse;
-import com.pblintern.web.Payload.Responses.PostResponse;
+import com.pblintern.web.Payload.DTO.Recommend;
+import com.pblintern.web.Payload.Requests.*;
+import com.pblintern.web.Payload.Responses.*;
 import com.pblintern.web.Repositories.*;
 import com.pblintern.web.Repositories.projection.HistoryInteractiveProjection;
 import com.pblintern.web.Services.PostService;
+import com.pblintern.web.Services.StorageService;
 import com.pblintern.web.Utils.AppUtils;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -51,19 +46,25 @@ public class IPostService implements PostService {
     private FieldRepository fieldRepository;
 
     @Autowired
-    private EmployeerRepository employeerRepository;
+    private RecruiterRepository recruiterRepository;
 
     @Autowired
     private UserRepository userRepository;
 
     @Autowired
-    private SeekerRepository seekerRepository;
+    private CandidateRepository candidateRepository;
 
     @Autowired
     private HistoryInteractiveRepository historyInteractiveRepository;
 
     @Autowired
     private ApplicationRepository applicationRepository;
+
+    @Autowired
+    private FavouriteRepository favouriteRepository;
+
+    @Autowired
+    private StorageService storageService;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -76,17 +77,14 @@ public class IPostService implements PostService {
         Post post = new Post();
         post.setName(req.getName());
 
-        String requirements = req.getRequirements().stream()
-                .map(RequirementPost::getValue)
-                .collect(Collectors.joining(", "));
-        post.setRequirements(requirements);
+        post.setRequirement(req.getRequirements());
         post.setLevel(req.getLevel());
         post.setDescription(req.getDescription());
 
 
-        String salary = "";
-        salary += req.getMinSalary() +" - " + req.getMaxSalary() + " VND";
-        post.setSalary(salary);
+
+        post.setMinSalary(req.getMinSalary());
+        post.setMaxSalary(req.getMaxSalary());
         post.setCreateAt(new Date());
         if(req.getExprires() != null){
             try{
@@ -99,45 +97,42 @@ public class IPostService implements PostService {
         }else
             post.setExpire(null);
         post.setExperience(req.getExperience());
-        Optional<Company> companyOptional = companyRepository.findByName(req.getCompanyName());
-        if(!companyOptional.isPresent()){
-            Company company = new Company();
-            company.setName(req.getName());
-            company.setLogo(req.getCompanyLogo());
-            company.setLocation(req.getCompanyLocation());
-            companyRepository.save(company);
-            post.setCompany(company);
-        }else{
-            post.setCompany(companyOptional.get());
-        }
-
-
-        FieldOfActivity fieldOfActivity = fieldRepository.findByName(req.getField()).orElseThrow(() -> new NotFoundException("Field not found!"));
-        post.setFieldOfActivity(fieldOfActivity);
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found!"));
-        Employer employer = employeerRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("Employer not found!"));
-        post.setEmployer(employer);
+        Recruiter recruiter = recruiterRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("Employer not found!"));
+
+        post.setCompany(recruiter.getCompany());
+
+        Set<Field> set = new HashSet<>();
+
+        req.getField().stream().forEach(f -> {
+            Field field = fieldRepository.findByName(f.getValue().toString()).orElseThrow(() -> new NotFoundException("Field not found!"));
+            set.add(field);
+        });
+        post.setFields(set);
+
+        post.setRecruiter(recruiter);
         postRepository.save(post);
-        return new PostResponse(post.getId(),post.getName(),post.getLevel(),post.getDescription().replaceAll("\n"," ").replaceAll("-",""),post.getExperience(),post.getRequirements().replaceAll("\n", " ").replaceAll("-",""),
-                post.getCreateAt() == null ? null : post.getCreateAt(),post.getExpire() == null ? null : post.getExpire(), post.getSalary(),post.getCompany()== null ? null : post.getCompany().getName(),
-                post.getCompany()== null ? null : post.getCompany().getLogo(),post.getCompany()== null ? null : post.getCompany().getLocation(),post.getFieldOfActivity().getName(),user.getFullName());
+        return new PostResponse(post.getId(),post.getName(),post.getLevel(),post.getDescription().replaceAll("\n"," ").replaceAll("-",""),post.getExperience(),post.getRequirement().replaceAll("\n", " ").replaceAll("-",""),
+                post.getCreateAt() == null ? null : post.getCreateAt(),post.getExpire() == null ? null : post.getExpire(), post.getMinSalary(), post.getMaxSalary(),post.getCompany()== null ? null : post.getCompany().getName(),
+                post.getCompany()== null ? null : post.getCompany().getLogo(),post.getCompany()== null ? null : post.getCompany().getLocation(),post.getFields() == null ? null : post.getFields().stream().collect(Collectors.toList()),user.getFullName());
     }
 
     @Override
     public PostDetailResponse getPost(int id) {
         Post post =  postRepository.findById((id)).orElseThrow(() -> new NotFoundException("Post not found!"));
-        User user = userRepository.findById(post.getEmployer().getId()).orElseThrow(() -> new NotFoundException("User not found"));
-        String minSalary ="";
-        String maxSalary = "";
-        if(!post.getSalary().equals("") && !post.getSalary().equals("Cạnh tranh")){
-            minSalary = post.getSalary().split(" ")[0] + " Tr";
-            maxSalary = post.getSalary().split(" ")[3] + " Tr";
+        User user = userRepository.findById(post.getRecruiter().getId()).orElseThrow(() -> new NotFoundException("User not found"));
+
+        Boolean isFavourite = false;
+        Optional<Favourite> favouriteOptional = favouriteRepository.findByCandidateAndPost(user.getId(), post.getId());
+        if(favouriteOptional.isPresent()){
+            isFavourite = true;
         }
-        return new PostDetailResponse(post.getId(),post.getName(),post.getLevel(),post.getDescription().replaceAll("\n"," ").replaceAll("-",""),post.getExperience(),post.getRequirements().replaceAll("\n", " ").replaceAll("-",""),
-                post.getCreateAt() == null ? null : post.getCreateAt(),post.getExpire() == null ? null : post.getExpire(), post.getSalary(),post.getCompany()== null ? null : post.getCompany().getName(),
-                post.getCompany()== null ? null : post.getCompany().getLogo(),post.getCompany()== null ? null : post.getCompany().getLocation(),post.getFieldOfActivity().getName(),user.getFullName(),minSalary,maxSalary);
+
+        return new PostDetailResponse(post.getId(),post.getName(),post.getLevel(),post.getDescription().replaceAll("\n"," ").replaceAll("-",""),post.getExperience(),post.getRequirement().replaceAll("\n", " ").replaceAll("-",""),
+                post.getCreateAt() == null ? null : post.getCreateAt(),post.getExpire() == null ? null : post.getExpire(), post.getMinSalary(), post.getMaxSalary(),post.getCompany()== null ? null : post.getCompany().getName(),
+                post.getCompany()== null ? null : post.getCompany().getLogo(),post.getCompany()== null ? null : post.getCompany().getLocation(),post.getFields() == null ? null : post.getFields().stream().collect(Collectors.toList()),user.getFullName(),isFavourite);
     }
 
 
@@ -160,7 +155,7 @@ public class IPostService implements PostService {
         List<RecommendRequest> listRequest = new ArrayList<>();
         for(Integer key : set){
             Post post = postRepository.findById(key).orElseThrow(() -> new NotFoundException("Post not found"));
-            listRequest.add(new RecommendRequest(post.getFieldOfActivity().getName(),idsPost.get(key)));
+            listRequest.add(new RecommendRequest(post.getFields() == null ? null : post.getFields().stream().map( p -> p.getName()).collect(Collectors.toList()), idsPost.get(key)));
         }
 
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
@@ -171,28 +166,26 @@ public class IPostService implements PostService {
         restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
         restTemplate.getMessageConverters().add(converter);
 
-        RecommendPost recommendPost = restTemplate.postForObject(recommendUrl+"field", listRequest , RecommendPost.class);
+        Recommend recommendPost = restTemplate.postForObject(recommendUrl+"field", listRequest , Recommend.class);
 
         List<PostResponse> posts = new ArrayList<>();
         recommendPost.getIds().stream().forEach(id -> {
                 Post post = postRepository.findById(id).orElseThrow(() -> new NotFoundException("Post not found!"));
-                User user = userRepository.findById(post.getEmployer().getId()).orElseThrow(() -> new NotFoundException("Employer not found!"));
-            PostResponse postResponse = new PostResponse(post.getId(),post.getName(),post.getLevel(),post.getDescription().replaceAll("\n"," ").replaceAll("-",""),post.getExperience(),post.getRequirements().replaceAll("\n", " ").replaceAll("-",""),
-                    post.getCreateAt() == null ? null : post.getCreateAt(),post.getExpire() == null ? null : post.getExpire(), post.getSalary(),post.getCompany()== null ? null : post.getCompany().getName(),
-                    post.getCompany()== null ? null : post.getCompany().getLogo(),post.getCompany()== null ? null : post.getCompany().getLocation(),post.getFieldOfActivity().getName(),user.getFullName());
+                User user = userRepository.findById(post.getRecruiter().getId()).orElseThrow(() -> new NotFoundException("Employer not found!"));
+            PostResponse postResponse = new PostResponse(post.getId(),post.getName(),post.getLevel(),post.getDescription().replaceAll("\n"," ").replaceAll("-",""),post.getExperience(),post.getRequirement().replaceAll("\n", " ").replaceAll("-",""),
+                    post.getCreateAt() == null ? null : post.getCreateAt(),post.getExpire() == null ? null : post.getExpire(), post.getMinSalary(), post.getMaxSalary(),post.getCompany()== null ? null : post.getCompany().getName(),
+                    post.getCompany()== null ? null : post.getCompany().getLogo(),post.getCompany()== null ? null : post.getCompany().getLocation(),post.getFields() == null ? null : post.getFields().stream().collect(Collectors.toList()),user.getFullName());
             posts.add(postResponse);
         });
         return posts;
     }
 
     @Override
-    public List<PostResponse> recommendFromSkill() {
+    public List<SummaryPostForCandidateResponse> recommendPostForCandiddate() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
-        Seeker seeker = seekerRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("Seeker not found!"));
-        SkillRequest skillRequest =new SkillRequest("");
-        seeker.getSkills().stream().forEach(s -> {
-            skillRequest.setName(skillRequest.getName().concat(" " + s.getName()));
-        });
+        Candidate candidate = candidateRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("Seeker not found!"));
+        String skill = candidate.getSkills().stream().map(Skills::getName).collect(Collectors.joining(", "));
+        RecommendForCandidateRequest recommendCandidateRequest =new RecommendForCandidateRequest(skill,candidate.getField().getName(),10);
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         List<MediaType> supportedMediaTypes = new ArrayList<>(converter.getSupportedMediaTypes());
         supportedMediaTypes.add(MediaType.TEXT_HTML);
@@ -201,45 +194,58 @@ public class IPostService implements PostService {
         restTemplate.getMessageConverters().add(new StringHttpMessageConverter());
         restTemplate.getMessageConverters().add(converter);
 
-        RecommendPost recommendPost = restTemplate.postForObject(recommendUrl+"skill", skillRequest , RecommendPost.class);
+        Recommend recommendPost = restTemplate.postForObject(recommendUrl+"skill", recommendCandidateRequest , Recommend.class);
 
-        List<PostResponse> posts = new ArrayList<>();
+        List<SummaryPostForCandidateResponse> posts = new ArrayList<>();
         recommendPost.getIds().stream().forEach(id -> {
             Post post = postRepository.findById(id).orElseThrow(() -> new NotFoundException("Post not found!"));
-            User user = userRepository.findById(post.getEmployer().getId()).orElseThrow(() -> new NotFoundException("Employer not found!"));
-            PostResponse postResponse = new PostResponse(post.getId(),post.getName(),post.getLevel(),post.getDescription().replaceAll("\n"," ").replaceAll("-",""),post.getExperience(),post.getRequirements().replaceAll("\n", " ").replaceAll("-",""),
-                    post.getCreateAt() == null ? null : post.getCreateAt(),post.getExpire() == null ? null : post.getExpire(), post.getSalary(),post.getCompany()== null ? null : post.getCompany().getName(),
-                    post.getCompany()== null ? null : post.getCompany().getLogo(),post.getCompany()== null ? null : post.getCompany().getLocation(),post.getFieldOfActivity().getName(),user.getFullName());
-            posts.add(postResponse);
+            User user = userRepository.findById(candidate.getId()).orElseThrow(() -> new NotFoundException("Candidate not found!"));
+            Optional<Application> application = applicationRepository.findByCandidateIdAndPostId(user.getId(), post.getId());
+            Boolean isApply = true;
+            if(application.isEmpty()){
+                isApply = false;
+            }
+            Optional<Favourite> favouriteOptional = favouriteRepository.findByCandidateAndPost(user.getId(), post.getId());
+            Boolean isSave = true;
+            if(favouriteOptional.isEmpty()){
+                isSave = false;
+            }
+            posts.add(new SummaryPostForCandidateResponse(post.getId(),post.getName(),post.getCompany()== null ? null : post.getCompany().getName(),
+                    post.getCompany()== null ? null : post.getCompany().getLogo(),post.getCreateAt(),isSave,isApply)
+            );
         });
         return posts;
     }
 
 
+
+
     @Override
     public List<PostResponse> recommend() {
         List<PostResponse> responses = recommendFromInteractive();
-        List<PostResponse> recommend_unavailable = recommendFromSkill().stream().filter(r -> !responses.contains(r)).collect(Collectors.toList());
-        responses.addAll(recommend_unavailable);
+//        List<PostResponse> recommend_unavailable = recommendFrromSkill().stream().filter(r -> !responses.contains(r)).collect(Collectors.toList());
+//        responses.addAll(recommend_unavailable);
         return responses;
     }
 
     @Override
     public PagedResponse<PostResponse> getJob(Date from, Date to, String searchField, String keyword, String sortType, String sortField, String location,
-                                              String postingDate,String experience,int size, int page) {
+                                              String postingDate,String experience,int salary,int field,int size, int page) {
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Tuple> criteriaQuery = criteriaBuilder.createTupleQuery();
         Root<Post> root = criteriaQuery.from(Post.class);
 
-        Join<Post,Employer> employerJoin = root.join("employer", JoinType.INNER);
+        Join<Post, Recruiter> recruiterJoin = root.join("recruiter", JoinType.INNER);
         Join<Post,Company> companyJoin = root.join("company", JoinType.INNER);
-        Join<Employer, User> userJoin = employerJoin.join("user", JoinType.INNER);
+        Join<Recruiter, User> userJoin = recruiterJoin.join("user", JoinType.INNER);
         criteriaQuery.multiselect(
                 userJoin.alias("user"),
-                employerJoin.alias("employer"),
+                recruiterJoin.alias("recruiter"),
                 root.alias("post"),
                 companyJoin.alias("company")
         );
+
+
 
         List<Predicate> predicates = new ArrayList<>();
         if(from != null && to!= null){
@@ -281,7 +287,25 @@ public class IPostService implements PostService {
             predicates.add(predicate);
         }
 
+        if(salary != 0 ){
+            Path<Integer> fieldSalary = root.get("maxSalary");
+           Predicate predicate =criteriaBuilder.lessThan(fieldSalary, salary);
+           predicates.add(predicate);
+        }
 
+        if(field != 0 ){
+            Join<Post, Field> fieldJoin = root.join("fields", JoinType.INNER);
+            criteriaQuery.multiselect(
+                    userJoin.alias("user"),
+                    recruiterJoin.alias("recruiter"),
+                    root.alias("post"),
+                    companyJoin.alias("company"),
+                    fieldJoin.alias("field")
+            );
+            Path<String> fieldField = fieldJoin.get("id");
+            Predicate predicate = criteriaBuilder.equal(fieldField, field);
+            predicates.add(predicate);
+        }
         if(postingDate != null){
             try {
                 Path<Date> fieldDate = root.get("createAt");
@@ -310,11 +334,15 @@ public class IPostService implements PostService {
         for(Tuple tuple : typedQuery.getResultList()){
             User user = tuple.get("user", User.class);
             Post post = tuple.get("post", Post.class);
-            PostResponse postResponse = new PostResponse(post.getId(),post.getName(),post.getLevel(),post.getDescription().replaceAll("\n"," ").replaceAll("-",""),post.getExperience(),post.getRequirements().replaceAll("\n", " ").replaceAll("-",""),
-                    post.getCreateAt() == null ? null : post.getCreateAt(),post.getExpire() == null ? null : post.getExpire(), post.getSalary(),post.getCompany()== null ? null : post.getCompany().getName(),
-                    post.getCompany()== null ? null : post.getCompany().getLogo(),post.getCompany()== null ? null : post.getCompany().getLocation(),post.getFieldOfActivity().getName(),user.getFullName());
+            PostResponse postResponse = new PostResponse(post.getId(),post.getName(),post.getLevel(),post.getDescription().replaceAll("\n"," ").replaceAll("-",""),post.getExperience(),post.getRequirement().replaceAll("\n", " ").replaceAll("-",""),
+                    post.getCreateAt() == null ? null : post.getCreateAt(),post.getExpire() == null ? null : post.getExpire(), post.getMinSalary(), post.getMaxSalary(),post.getCompany()== null ? null : post.getCompany().getName(),
+                    post.getCompany()== null ? null : post.getCompany().getLogo(),post.getCompany()== null ? null : post.getCompany().getLocation(),post.getFields() == null ? null : post.getFields().stream().collect(Collectors.toList()),user.getFullName());
             postResponses.add(postResponse);
+
         }
+        List<PostResponse> distinctElements = postResponses.stream()
+                .distinct()
+                .collect(Collectors.toList());
         PageRequest pageRequest = PageRequest.of(page,size);
 
         Page<PostResponse> pageResponse = new PageImpl<PostResponse>(postResponses, pageRequest, totalResults);
@@ -323,29 +351,70 @@ public class IPostService implements PostService {
     }
 
     @Override
-    public List<PostResponse> getMyJob() {
+    public List<SummaryPostForCandidateResponse> getMyApplicationForCandidate() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found!"));
-        List<PostResponse> reponses = new ArrayList<>();
-        if(user.getFirstRole().getName().toString().equals(RoleEnum.SEEKER.toString())){
-            List<Application> apps = applicationRepository.findBySeekerId(user.getId());
+        List<SummaryPostForCandidateResponse> reponses = new ArrayList<>();
+        if(user.getFirstRole().getName().toString().equals(RoleEnum.CANDIDATE.toString())){
+            List<Application> apps = applicationRepository.findByCandidateId(user.getId());
             apps.stream().forEach( a -> {
-                Post post = a.getJobPost();
-                reponses.add(new PostResponse(post.getId(),post.getName(),post.getLevel(),post.getDescription().replaceAll("\n"," ").replaceAll("-",""),post.getExperience(),post.getRequirements().replaceAll("\n", " ").replaceAll("-",""),
-                        post.getCreateAt() == null ? null : post.getCreateAt(),post.getExpire() == null ? null : post.getExpire(), post.getSalary(),post.getCompany()== null ? null : post.getCompany().getName(),
-                        post.getCompany()== null ? null : post.getCompany().getLogo(),post.getCompany()== null ? null : post.getCompany().getLocation(),post.getFieldOfActivity().getName(),user.getFullName())
-                        );
-            });
-        }else if(user.getFirstRole().getName().toString().equals(RoleEnum.EMPLOYER.toString())){
-            List<Post> posts = postRepository.getMyJob(user.getId());
-            posts.stream().forEach(post -> {
-                reponses.add(new PostResponse(post.getId(),post.getName(),post.getLevel(),post.getDescription().replaceAll("\n"," ").replaceAll("-",""),post.getExperience(),post.getRequirements().replaceAll("\n", " ").replaceAll("-",""),
-                        post.getCreateAt() == null ? null : post.getCreateAt(),post.getExpire() == null ? null : post.getExpire(), post.getSalary(),post.getCompany()== null ? null : post.getCompany().getName(),
-                        post.getCompany()== null ? null : post.getCompany().getLogo(),post.getCompany()== null ? null : post.getCompany().getLocation(),post.getFieldOfActivity().getName(),user.getFullName())
+                Post post = postRepository.findById(a.getPost_id()).orElseThrow(() -> new NotFoundException("Post not found!"));
+                Optional<Favourite> favouriteOptional = favouriteRepository.findByCandidateAndPost(user.getId(), post.getId());
+                Boolean isSave = true;
+                if(favouriteOptional.isEmpty()){
+                    isSave = false;
+                }
+                reponses.add(new SummaryPostForCandidateResponse(post.getId(),post.getName(),post.getCompany()== null ? null : post.getCompany().getName(),
+                        post.getCompany()== null ? null : post.getCompany().getLogo(),a.getCreateAt(),isSave,true)
                         );
             });
         }
         return reponses;
+    }
+
+    @Override
+    public List<SummaryPostForCandidateResponse> getMyFavouriteForCandidate() {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found!"));
+        List<SummaryPostForCandidateResponse> reponses = new ArrayList<>();
+        if(user.getFirstRole().getName().toString().equals(RoleEnum.CANDIDATE.toString())){
+            List<Favourite> favourites = favouriteRepository.findByCandidateId(user.getId());
+            favourites.stream().forEach( a -> {
+                Post post = postRepository.findById(a.getPost_id()).orElseThrow(() -> new NotFoundException("Post not found!"));
+                Optional<Application> application = applicationRepository.findByCandidateIdAndPostId(user.getId(), post.getId());
+                Boolean isApply = true;
+                if(application.isEmpty()){
+                    isApply = false;
+                }
+                reponses.add(new SummaryPostForCandidateResponse(post.getId(),post.getName(),post.getCompany()== null ? null : post.getCompany().getName(),
+                        post.getCompany()== null ? null : post.getCompany().getLogo(),a.getCreateAt(),true,isApply)
+                );
+            });
+        }
+        return reponses;
+    }
+
+    @Override
+    public List<SummaryPostForRecruiterResponse> getMyJobForRecruiter(Boolean isShow) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found!"));
+        List<SummaryPostForRecruiterResponse> responses = new ArrayList<>();
+
+        if(isShow == null){
+            isShow = true;
+        }
+        List<Post> posts = postRepository.getMyJob(user.getId());
+        if(isShow){
+            List<Post> postFilter = posts.stream().filter(p -> p.getExpire().after(new Date())).collect(Collectors.toList());
+            postFilter.stream().forEach(p -> {
+                responses.add(new SummaryPostForRecruiterResponse(p.getId(), p.getName(), p.getCreateAt(), p.getExpire(), p.getMinSalary(), p.getMaxSalary()));
+            });
+        }else {
+            posts.stream().forEach(p -> {
+                responses.add(new SummaryPostForRecruiterResponse(p.getId(), p.getName(), p.getCreateAt(), p.getExpire(), p.getMinSalary(), p.getMaxSalary()));
+            });
+        }
+        return responses;
     }
 
     @Override
@@ -360,17 +429,15 @@ public class IPostService implements PostService {
         Post post = postRepository.findById(id).orElseThrow(() -> new NotFoundException("Post not found"));
         post.setName(req.getName());
 
-        String requirements = req.getRequirements().stream()
-                .map(RequirementPost::getValue)
-                .collect(Collectors.joining(", "));
-        post.setRequirements(requirements);
+
+        post.setRequirement(req.getRequirements());
         post.setLevel(req.getLevel());
         post.setDescription(req.getDescription());
 
 
-        String salary = "";
-        salary += req.getMinSalary() +" - " + req.getMaxSalary() + " VND";
-        post.setSalary(salary);
+
+        post.setMaxSalary(req.getMaxSalary());
+        post.setMinSalary(req.getMinSalary());
         post.setCreateAt(new Date());
         if(req.getExprires() != null){
             try{
@@ -383,29 +450,25 @@ public class IPostService implements PostService {
         }else
             post.setExpire(null);
         post.setExperience(req.getExperience());
-        Optional<Company> companyOptional = companyRepository.findByName(req.getCompanyName());
-        if(!companyOptional.isPresent()){
-            Company company = new Company();
-            company.setName(req.getName());
-            company.setLogo(req.getCompanyLogo());
-            company.setLocation(req.getCompanyLocation());
-            companyRepository.save(company);
-            post.setCompany(company);
-        }else{
-            post.setCompany(companyOptional.get());
-        }
 
+        Set<Field> set = new HashSet<>();
 
-        FieldOfActivity fieldOfActivity = fieldRepository.findByName(req.getField()).orElseThrow(() -> new NotFoundException("Field not found!"));
-        post.setFieldOfActivity(fieldOfActivity);
+        req.getField().stream().forEach(f -> {
+            Field field = fieldRepository.findByName(f.getValue().toString()).orElseThrow(() -> new NotFoundException("Field not found!"));
+            set.add(field);
+        });
+        post.setFields(set);
+
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found!"));
 
         postRepository.save(post);
-        return new PostResponse(post.getId(),post.getName(),post.getLevel(),post.getDescription().replaceAll("\n"," ").replaceAll("-",""),post.getExperience(),post.getRequirements().replaceAll("\n", " ").replaceAll("-",""),
-                post.getCreateAt() == null ? null : post.getCreateAt(),post.getExpire() == null ? null : post.getExpire(), post.getSalary(),post.getCompany()== null ? null : post.getCompany().getName(),
-                post.getCompany()== null ? null : post.getCompany().getLogo(),post.getCompany()== null ? null : post.getCompany().getLocation(),post.getFieldOfActivity().getName(),user.getFullName());
+        return new PostResponse(post.getId(),post.getName(),post.getLevel(),post.getDescription().replaceAll("\n"," ").replaceAll("-",""),post.getExperience(),post.getRequirement().replaceAll("\n", " ").replaceAll("-",""),
+                post.getCreateAt() == null ? null : post.getCreateAt(),post.getExpire() == null ? null : post.getExpire(), post.getMinSalary(), post.getMaxSalary(),post.getCompany()== null ? null : post.getCompany().getName(),
+                post.getCompany()== null ? null : post.getCompany().getLogo(),post.getCompany()== null ? null : post.getCompany().getLocation(),post.getFields() == null ? null : post.getFields().stream().collect(Collectors.toList()),user.getFullName());
 
     }
+
+
 }

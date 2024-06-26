@@ -9,6 +9,7 @@ import org.springframework.batch.item.database.JdbcCursorItemReader;
 import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class CSVExportReader implements ItemReader<CSVRequest> {
 
@@ -26,16 +27,22 @@ public class CSVExportReader implements ItemReader<CSVRequest> {
         JdbcCursorItemReader<CSVRequest> itemReader = new JdbcCursorItemReader<CSVRequest>();
         if(index==0){
             itemReader.setDataSource(dataSource);
-            itemReader.setSql("SELECT p.id, p.name, c.id as company_id, c.name as company_name,f.name as job_field,p.salary, p.experience, " +
-                    " p.level, p.expire, p.description," +
-                    " p.requirements from post as p inner join company as c on p.company_id = c.id " +
-                    " inner join field_of_activity as f on f.id = p.field_id");
+            itemReader.setSql("SELECT p.id, p.name,f.name as jobField, p.description as description ,p.requirement as requirement " +
+                    "from post as p inner join post_field as pf on pf.post_id = p.id inner join field as f on f.id = pf.field_id ");
             itemReader.setRowMapper(new PostMapper());
             ExecutionContext executionContext = new ExecutionContext();
             itemReader.open(executionContext);
             CSVRequest post ;
             while((post = itemReader.read()) != null){
-                jobPosts.add(post);
+                final CSVRequest currentPost = post;
+                Optional<CSVRequest> existingItem = jobPosts.stream()
+                        .filter(item -> (item.getId() == currentPost.getId()))
+                        .findFirst();
+                if (existingItem.isPresent()) {
+                    existingItem.get().setJobField(existingItem.get().getJobField() + ", " +post.getJobField());
+                } else {
+                    jobPosts.add(post);
+                }
             }
         }
         if(index >= jobPosts.size()){

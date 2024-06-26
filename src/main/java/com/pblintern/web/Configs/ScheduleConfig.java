@@ -29,9 +29,21 @@ public class ScheduleConfig {
     @Qualifier("job-export-csv")
     private Job jobExportCsv;
 
+
     @Autowired
-    @Qualifier("job-remove-skill")
-    private Job jobRemoveSkill;
+    @Qualifier("job-remove-recruiter")
+    private Job jobRemoveRecruiter;
+
+    @Autowired
+    @Qualifier("job-notification-recruiter")
+    private Job jobNotificationRecruiter;
+
+    @Scheduled(fixedRate = 20000)
+    public void runJobRemoveRecruiter() throws JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, JobParametersInvalidException{
+        JobParameters jobParameters = new JobParametersBuilder()
+                .addString("key", String.valueOf("Verification " + UUID.randomUUID())).toJobParameters();
+        jobLauncher.run(jobRemoveRecruiter,jobParameters);
+    }
 
     @Scheduled(fixedRate = 1*60*60*1000)
     public void runJob() throws JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, JobParametersInvalidException {
@@ -41,12 +53,11 @@ public class ScheduleConfig {
         jobLauncher.run(jobExportCsv,jobParameter);
     }
 
-    @Scheduled(fixedRate = 1*60*1000)
-    public void runJobRemoveSkill() throws JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, JobParametersInvalidException {
-        log.info("Run job remove");
-        JobParameters jobParameter = new JobParametersBuilder()
-                .addString("key",String.valueOf("RemoveSkill " + UUID.randomUUID())).toJobParameters();
-        jobLauncher.run(jobRemoveSkill,jobParameter);
+    @Scheduled(fixedRate = 20000)
+    public void runJobNotificationRecruiter() throws JobExecutionAlreadyRunningException, JobRestartException, JobInstanceAlreadyCompleteException, JobParametersInvalidException{
+        JobParameters jobParameters = new JobParametersBuilder()
+                .addString("key", String.valueOf("Notification " + UUID.randomUUID())).toJobParameters();
+        jobLauncher.run(jobNotificationRecruiter,jobParameters);
     }
 
 }

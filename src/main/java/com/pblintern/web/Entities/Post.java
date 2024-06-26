@@ -1,11 +1,13 @@
 package com.pblintern.web.Entities;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
+import java.util.Set;
 
 
 @Entity
@@ -25,7 +27,7 @@ public class Post {
     @Column(columnDefinition = "TEXT")
     private String experience;
     @Column(columnDefinition = "TEXT")
-    private String requirements;
+    private String requirement;
     @Column
     private Date createAt;
     @Column
@@ -33,17 +35,19 @@ public class Post {
     @Column(columnDefinition = "TEXT")
     private String description;
     @Column
-    private String salary;
+    private int minSalary;
     @Column
-    private int views;
+    private int maxSalary;
     @ManyToOne
     @JoinColumn(name = "company_id")
     private Company company;
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
+    @JsonIgnore
+    @JoinTable(name ="post_field", joinColumns =@JoinColumn(name = "post_id" , referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "field_id" , referencedColumnName = "id"))
+    private Set<Field> fields;
     @ManyToOne
-    @JoinColumn(name = "field_id")
-    private FieldOfActivity fieldOfActivity;
-    @ManyToOne
-    @JoinColumn(name = "employer_id")
-    private Employer employer;
+    @JoinColumn(name = "recruiter_id")
+    private Recruiter recruiter;
 
 }

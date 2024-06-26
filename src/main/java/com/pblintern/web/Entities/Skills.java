@@ -19,7 +19,4 @@ public class Skills {
     @Column
     private String name;
 
-    @ManyToMany(mappedBy = "skills")
-    private Set<Seeker> seekers;
-
 }

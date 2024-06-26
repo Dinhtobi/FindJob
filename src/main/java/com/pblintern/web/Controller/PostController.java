@@ -22,14 +22,19 @@ public class PostController {
     private PostService postService;
 
     @PostMapping
-    @PreAuthorize("hasRole('EMPLOYEER')")
+    @PreAuthorize("hasRole('RECRUITER')")
     public ResponseEntity<?> addPost(@RequestBody PostRequest req){
         return ResponseEntity.ok(postService.addPost(req));
     }
 
     @GetMapping("/my-job")
     public ResponseEntity<?> getMyJob(){
-        return ResponseEntity.ok(postService.getMyJob());
+        return ResponseEntity.ok(postService.getMyApplicationForCandidate());
+    }
+
+    @GetMapping("/my-favourite")
+    public ResponseEntity<?> getMyFavourite(){
+        return ResponseEntity.ok(postService.getMyFavouriteForCandidate());
     }
 
     @GetMapping("/{id}")
@@ -39,7 +44,7 @@ public class PostController {
 
     @GetMapping("/recommend")
     public ResponseEntity<?> recommendPostInteractive(){
-        return ResponseEntity.ok(postService.recommend());
+        return ResponseEntity.ok(postService.recommendPostForCandiddate());
     }
 
 
@@ -54,9 +59,11 @@ public class PostController {
                                      @RequestParam(required = false) String location,
                                      @RequestParam(required = false) String postingDate,
                                      @RequestParam(required = false) String experience,
+                                     @RequestParam(required = false, defaultValue = "0") int salary,
+                                     @RequestParam(required = false, defaultValue = "0") int field,
                                      @RequestParam(required = false, defaultValue = Constant.DEFAULT_PAGE_SIZE) int size,
                                      @RequestParam(required = false, defaultValue = Constant.DEFAULT_PAGE_NUMBER) int number){
-        return ResponseEntity.ok(postService.getJob(from,to ,searchField,keyword,sortType,sortField,location,postingDate,experience,size,number));
+        return ResponseEntity.ok(postService.getJob(from,to ,searchField,keyword,sortType,sortField,location,postingDate,experience,salary,field,size,number));
     }
 
     @DeleteMapping("/{id}")

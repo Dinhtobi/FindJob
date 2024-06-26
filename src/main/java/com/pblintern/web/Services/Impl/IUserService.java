@@ -6,17 +6,17 @@ import com.pblintern.web.Enums.RoleEnum;
 import com.pblintern.web.Exceptions.BadRequestException;
 import com.pblintern.web.Exceptions.NotFoundException;
 import com.pblintern.web.Payload.Requests.*;
-import com.pblintern.web.Payload.Responses.BaseResponse;
-import com.pblintern.web.Payload.Responses.LoginResponse;
-import com.pblintern.web.Payload.Responses.RegisterEmployeerResponse;
-import com.pblintern.web.Payload.Responses.SeekerResponse;
+import com.pblintern.web.Payload.Responses.*;
 import com.pblintern.web.Repositories.*;
 import com.pblintern.web.Services.UserService;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.MailException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -28,10 +28,13 @@ public class IUserService implements UserService {
     private UserRepository userRepository;
 
     @Autowired
-    private SeekerRepository seekerRepository;
+    private CandidateRepository candidateRepository;
 
     @Autowired
-    private EmployeerRepository employeerRepository;
+    private RecruiterRepository recruiterRepository;
+
+    @Autowired
+    private CompanyRepository companyRepository;
 
     @Autowired
     private RoleRepository roleRepository;
@@ -40,13 +43,16 @@ public class IUserService implements UserService {
     private SkillRepository skillRepository;
 
     @Autowired
-    private WorkExperienceRepository workExperienceRepository;
+    private FieldRepository fieldRepository;
 
     @Autowired
-    private IFileStorageService fileStorageService;
+    private IEmailService emailService;
+
+    @Autowired
+    private IStorageService storageService;
 
     @Override
-    public BaseResponse<LoginResponse> loadUser(String email) {
+    public BaseResponse<?> loadUser(String email) {
         Optional<User> userOptional = userRepository.findByEmail(email);
         if(userOptional.isEmpty()){
             return new BaseResponse<LoginResponse>(new LoginResponse("Unregister ",null, -1 ), "User not found");
@@ -55,7 +61,8 @@ public class IUserService implements UserService {
         if(!user.isNonBlock()){
             return new BaseResponse<LoginResponse>(new LoginResponse("Blocked", user.getFirstRole().getName(), user.getId()), "User is blocked");
         }
-        return new BaseResponse<LoginResponse>(new LoginResponse("Success", user.getFirstRole().getName(),user.getId()), "User is registered");
+        String avatar = storageService.createPresignedGetUrl("avatarfindjob", user.getAvatar()).getUrl();
+        return new BaseResponse<UserResponse>(new UserResponse("Success", user.getFirstRole().getName(),user.getId(), user.getFullName(), user.getPhoneNumber(), user.getEmail(), avatar, user.isGender(), user.getDateOfBirth()), "Login success");
     }
 
     @Override
@@ -93,38 +100,34 @@ public class IUserService implements UserService {
         Set<Role> roles = new HashSet<>();
         roles.add(role);
         user.setRoles(roles);
-        if(registerUserRequest.getAvatar() == null && roleEnum.equals(RoleEnum.EMPLOYER)){
-            throw new BadRequestException("Avatar not NULL!");
-        }
-        if(registerUserRequest.getAvatar() != null){
-            String url = fileStorageService.createImgUrl(registerUserRequest.getAvatar());
-            user.setAvatar(url);
-        }
+
         return user;
     }
 
     @Override
     @Transactional
-    public SeekerResponse registerSeeker(SeekerRequest registerSeekerRequest) {
+    public CandidateResponse registerCandidate(CandidateRequest registerCandidateRequest) {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Optional<User> user = userRepository.findByEmail(email);
         if(user.isPresent()){
             throw new BadRequestException("User has been already registered");
         }
-        User userSaved = user.orElseGet(() -> registerUser(new UserRequest(registerSeekerRequest.getFullName(),
-                                                                            registerSeekerRequest.getPhoneNumber(),
-                                                                            registerSeekerRequest.isGender(),
-                                                                            registerSeekerRequest.getDateOfBirth(),
-                                                                            registerSeekerRequest.getAvatar()
-                                                                            ),RoleEnum.SEEKER));
+        User userSaved = user.orElseGet(() -> registerUser(new UserRequest(registerCandidateRequest.getFullName(),
+                                                                            registerCandidateRequest.getPhoneNumber(),
+                                                                            registerCandidateRequest.isGender(),
+                                                                            registerCandidateRequest.getDateOfBirth(),
+                                                                            registerCandidateRequest.getAvatar()
+                                                                            ),RoleEnum.CANDIDATE));
         userRepository.save(userSaved);
-        Seeker seeker = new Seeker();
-        if(registerSeekerRequest.getSkills() == null ){
-            seeker.setSkills(null);
+        userSaved.setAvatar(String.valueOf(userSaved.getId()));
+        userRepository.save(userSaved);
+        Candidate candidate = new Candidate();
+        if(registerCandidateRequest.getSkills() == null ){
+            candidate.setSkills(null);
         }else{
             Set<Skills> set = new HashSet<>();
             List<SkillRequest> skills = new ArrayList<>();
-            registerSeekerRequest.getSkills().stream().forEach(r -> {
+            registerCandidateRequest.getSkills().stream().forEach(r -> {
                 skills.add(new SkillRequest(r.getValue()));
             });
             List<SkillRequest> skills_unavailable = skills.stream().filter( s -> !skillRepository.findByName(s.getName()).isPresent()).collect(Collectors.toList());
@@ -139,43 +142,72 @@ public class IUserService implements UserService {
                 Skills skill = skillRepository.findByName(s.getName().toLowerCase()).get();
                 set.add(skill);
             });
-            seeker.setSkills(set);
+            candidate.setSkills(set);
         }
-        seeker.setUser(userSaved);
-        seeker.setId(userSaved.getId());
-        seeker.setAddress(registerSeekerRequest.getAddress());
+        Field field = fieldRepository.findById(registerCandidateRequest.getFieldId()).orElseThrow(() -> new NotFoundException("Field not found!"));
+        candidate.setField(field);
+        candidate.setUser(userSaved);
+        candidate.setId(userSaved.getId());
+        candidate.setAddress(registerCandidateRequest.getAddress());
+        candidate.setCvUrl(String.valueOf(userSaved.getId()));
+        candidateRepository.save(candidate);
+        String avatarUrl = storageService.createPresignedGetUrl("avatarfindjob", userSaved.getAvatar()).getUrl();
+        String cvUrl = storageService.createPresignedGetUrl("cvfindjob", candidate.getCvUrl()).getUrl();
+        return new CandidateResponse(candidate.getId(), userSaved.getFullName(),userSaved.getPhoneNumber(),userSaved.getEmail(),userSaved.getDateOfBirth().getTime(),
+                                            userSaved.isGender(),avatarUrl, candidate.getAddress(), candidate.getSkills() == null ? null : candidate.getSkills().stream().collect(Collectors.toList()),cvUrl,candidate.getField());
 
-        seekerRepository.save(seeker);
-        return new SeekerResponse(seeker.getId(), userSaved.getFullName(),userSaved.getPhoneNumber(),userSaved.getEmail(),userSaved.getDateOfBirth().getTime(),
-                                            userSaved.isGender(),userSaved.getAvatar(),seeker.getAddress(), seeker.getSkills() == null ? null :seeker.getSkills().stream().collect(Collectors.toList()),
-                                            seeker.getWorkExperiences() == null ? null :seeker.getWorkExperiences().stream().collect(Collectors.toList()))  ;
 
     }
 
     @Override
     @Transactional
-    public RegisterEmployeerResponse registerEmployeer(RegisterEmployerRequest registerEmployerRequest) {
+    public RecruiterResponse registerRecruiter(RecruiterRequest recruiterRequest) throws UnsupportedEncodingException, MailException, MessagingException {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         Optional<User> user = userRepository.findByEmail(email);
-        if(user.isPresent()){
+        if (user.isPresent()) {
             throw new BadRequestException("User has been already registered");
         }
-        User userSaved = user.orElseGet(() -> registerUser(new UserRequest(registerEmployerRequest.getFullName(),
-                registerEmployerRequest.getPhoneNumber(),
-                registerEmployerRequest.isGender(),
-                registerEmployerRequest.getDateOfBirth(),
-                registerEmployerRequest.getAvatar()
-                ),RoleEnum.EMPLOYER));
+        User userSaved = user.orElseGet(() -> registerUser(new UserRequest(recruiterRequest.getFullName(),
+                recruiterRequest.getPhoneNumber(),
+                recruiterRequest.isGender(),
+                recruiterRequest.getDateOfBirth(),
+                recruiterRequest.getAvatar()
+        ), RoleEnum.RECRUITER));
         userRepository.save(userSaved);
-        Employer employer = new Employer();
-        employer.setUser(userSaved);
-        employer.setId(userSaved.getId());
-        employer.setPosition(registerEmployerRequest.getPosition());
-        employeerRepository.save(employer);
-        return new RegisterEmployeerResponse(employer.getId(), userSaved.getFullName(),userSaved.getPhoneNumber(),userSaved.getEmail(),userSaved.getDateOfBirth().getTime(),
-                userSaved.isGender(),userSaved.getAvatar(),employer.getPosition()) ;
-    }
+        userSaved.setAvatar(String.valueOf(userSaved.getId()));
+        userRepository.save(userSaved);
+        Recruiter recruiter = new Recruiter();
+        recruiter.setUser(userSaved);
+        recruiter.setId(userSaved.getId());
+        recruiter.setPosition(recruiterRequest.getPosition());
+        recruiter.setEnable(false);
+        recruiter.setVerification_code(UUID.randomUUID().toString().substring(0, 6));
+        Company company;
+        if(!recruiterRequest.getIsHadCompany()){
+                company = new Company();
+                company.setName(recruiterRequest.getCompanyName());
+                company.setCompanyType(recruiterRequest.getCompanyType());
+                company.setCompanySize(recruiterRequest.getCompanySize());
+                company.setLogo(recruiterRequest.getCompanyLogo());
+                company.setLocation(recruiterRequest.getCompanyLocation());
+                company.setDescription(recruiterRequest.getCompanyDescription());
+                company.setEmail(recruiterRequest.getCompanyEmail());
+                company.setWebSite(recruiterRequest.getCompanyWebSite());
+                companyRepository.save(company);
+                company.setBusinessLicenseImg(String.valueOf(company.getId()));
+                companyRepository.save(company);
+                recruiter.setCompany(company);
+        }else{
+            company = companyRepository.findById(recruiterRequest.getCompanyId()).orElseThrow(() -> new NotFoundException("Company not found!"));
+            recruiter.setCompany(company);
+        }
 
+        recruiterRepository.save(recruiter);
+
+        emailService.sendVerificationRecruiter(recruiter.getId());
+        return new RecruiterResponse(recruiter.getId(), userSaved.getFullName(), userSaved.getPhoneNumber(), userSaved.getEmail(), userSaved.getDateOfBirth().getTime(),
+                userSaved.isGender(), userSaved.getAvatar(), recruiter.getPosition(), company.getId());
+    }
     @Override
     public User updateUserInfo(UserRequest userRequest, int id) {
         User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found!"));
@@ -191,12 +223,22 @@ public class IUserService implements UserService {
                 user.setDateOfBirth(null);
             }
         }
-
         if(userRequest.getAvatar() != null){
-            String url = fileStorageService.createImgUrl(userRequest.getAvatar());
-            user.setAvatar(url);
+            user.setAvatar(userRequest.getAvatar());
         }
         userRepository.save(user);
         return user;
+    }
+
+    @Override
+    public BaseResponse<Boolean> blockUser(int id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new NotFoundException("User not found!"));
+        if(user.isNonBlock()){
+            user.setNonBlock(false);
+        }else{
+            user.setNonBlock(true);
+        }
+        userRepository.save(user);
+        return new BaseResponse<Boolean>(true, "Update success!");
     }
 }

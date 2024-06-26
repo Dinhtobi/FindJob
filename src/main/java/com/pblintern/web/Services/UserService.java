@@ -2,24 +2,27 @@ package com.pblintern.web.Services;
 
 import com.pblintern.web.Entities.User;
 import com.pblintern.web.Enums.RoleEnum;
-import com.pblintern.web.Payload.Requests.CVRequest;
-import com.pblintern.web.Payload.Requests.RegisterEmployerRequest;
-import com.pblintern.web.Payload.Requests.SeekerRequest;
+import com.pblintern.web.Payload.Requests.RecruiterRequest;
+import com.pblintern.web.Payload.Requests.CandidateRequest;
 import com.pblintern.web.Payload.Requests.UserRequest;
 import com.pblintern.web.Payload.Responses.BaseResponse;
 import com.pblintern.web.Payload.Responses.LoginResponse;
-import com.pblintern.web.Payload.Responses.RegisterEmployeerResponse;
-import com.pblintern.web.Payload.Responses.SeekerResponse;
+import com.pblintern.web.Payload.Responses.RecruiterResponse;
+import com.pblintern.web.Payload.Responses.CandidateResponse;
+import jakarta.mail.MessagingException;
+import org.springframework.mail.MailException;
+
+import java.io.UnsupportedEncodingException;
 
 public interface UserService {
 
-    BaseResponse<LoginResponse> loadUser(String email);
+    BaseResponse<?> loadUser(String email);
 
     User registerUser(UserRequest userRequest , RoleEnum roleEnum);
 
-    SeekerResponse registerSeeker(SeekerRequest seekerRequest);
+    CandidateResponse registerCandidate(CandidateRequest candidateRequest);
 
-    RegisterEmployeerResponse registerEmployeer(RegisterEmployerRequest registerEmployerRequest);
+    RecruiterResponse registerRecruiter(RecruiterRequest recruiterRequest) throws UnsupportedEncodingException, MailException, MessagingException;
 
     User getById(int id);
 
@@ -27,5 +30,5 @@ public interface UserService {
 
     User updateUserInfo(UserRequest userRequest, int id);
 
-
+    BaseResponse<Boolean> blockUser(int id);
 }

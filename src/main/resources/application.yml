@@ -2,13 +2,27 @@ google:
     client-id: 439847719014-pkff4061t2kdmokun7m3iggr6isgpea6.apps.googleusercontent.com
     client-secrets: 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
 
-cloudinary.api:
-    key: 158194746611984
-    name: dpjd9bfte
-    secret: R4R1-Xrj5KIs57oY_pkbxRnn1Ak
+cloud:
+    aws:
+        credentials:
+            access-key: AKIAVRUVQ7MHNCACVMNU
+            secret-key: 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
+        region:
+            static: us-east-1
+        stack:
+            auto: false
+
+application:
+    bucket:
+        name: findjobstorages
 
 file:
     upload-file: ./uploads
     csv: ./file
 AI:
     recommendUrl: http://127.0.0.1:6868/AI/recommend/
+
+Email:
+    siteUrl: http://localhost:8080/account
+    fromAddress: dinhnguyen2002asd@gmail.com
+

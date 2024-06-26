@@ -50,6 +50,8 @@ public class WebConfig implements WebMvcConfigurer{
         http.cors();		// Kích hoạt CORS
         http.csrf(AbstractHttpConfigurer::disable);
         http.authorizeRequests().requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll();
+        http.authorizeRequests().requestMatchers("/account/verify", "/post","/company","/field", "/company/*", "/company/job/*").permitAll();
+
         http.authorizeRequests().requestMatchers("/**").authenticated().anyRequest().authenticated();
         http.exceptionHandling().authenticationEntryPoint(googleEntrypoint);
         http.addFilterBefore(new GoogleFilter(), BasicAuthenticationFilter.class);

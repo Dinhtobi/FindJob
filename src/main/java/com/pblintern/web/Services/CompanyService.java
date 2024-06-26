@@ -1,8 +1,18 @@
 package com.pblintern.web.Services;
 
-import com.pblintern.web.Payload.Requests.RegisterCompanyRequest;
-import com.pblintern.web.Payload.Responses.CompanyResponse;
+import com.pblintern.web.Payload.Responses.*;
+
+import java.util.List;
 
 public interface CompanyService {
-    CompanyResponse registerCompany(RegisterCompanyRequest requestCompanyRequest);
+    List<CompanyCardResponse> getTopCompany(int size);
+
+    List<CompanyCardDetailResponse> getCompanies(int size, String type);
+
+    CompanyResponse getCompany(int id);
+
+    List<PostCompanyResponse> getJobOfCompany(int id);
+
+    List<CompanySelectResponse> getCompanySelect();
+
 }

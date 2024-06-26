@@ -1,6 +1,6 @@
 package com.pblintern.web.Services.Impl;
 
-import com.pblintern.web.Entities.FieldOfActivity;
+import com.pblintern.web.Entities.Field;
 import com.pblintern.web.Payload.Responses.FieldResponse;
 import com.pblintern.web.Repositories.FieldRepository;
 import com.pblintern.web.Services.FieldService;
@@ -18,10 +18,10 @@ public class IFieldService implements FieldService {
 
     @Override
     public List<FieldResponse> getALL() {
-        List<FieldOfActivity> fields = fieldRepository.findAll();
+        List<Field> fields = fieldRepository.findAll();
         List<FieldResponse> responses = new ArrayList<>();
         fields.stream().forEach(field -> {
-            responses.add(new FieldResponse(field.getName()));
+            responses.add(new FieldResponse( field.getId(),field.getName()));
         });
         return responses;
     }

@@ -11,5 +11,5 @@ import java.util.List;
 @NoArgsConstructor
 public class CVRequest {
     private List<SkillRequest> skills;
-    private List<WorkExperienceRequest> workExperiences;
+    private List<CandidateRecommendRequest> workExperiences;
 }

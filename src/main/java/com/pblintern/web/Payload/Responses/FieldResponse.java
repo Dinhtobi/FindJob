@@ -10,5 +10,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FieldResponse {
+
+    private int id;
     private String name;
 }

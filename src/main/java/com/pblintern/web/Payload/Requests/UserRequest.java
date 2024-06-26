@@ -17,9 +17,9 @@ public class UserRequest {
     private String fullName;
     @NotBlank
     private String phoneNumber;
-    boolean gender;
+    private boolean gender;
     @NotBlank
     private String dateOfBirth;
-    @NotNull
-    private MultipartFile avatar;
+
+    private String avatar;
 }

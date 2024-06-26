@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -18,29 +19,38 @@ public class Company {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     @Column
     private String idCompany;
+
     @Column
     private String name;
-    @Column
-    private String webSite;
-    @Column(columnDefinition = "TEXT")
-    private String location;
-    @Column
-    private String companySize;
-    @Column
-    private String companyType;
+
     @Column
     private String email;
+
     @Column
-    private String phoneNumber;
+    private String webSite;
+
+    @Column(columnDefinition = "TEXT")
+    private String location;
+
     @Column
-    private String taxCode;
+    private String companySize;
+
+    @Column
+    private String companyType;
+
     @Column
     private String businessLicenseImg;
+
     @Column(columnDefinition = "TEXT")
     private String logo;
+
     @Column(columnDefinition = "TEXT")
     private String description;
+
+    @Column
+    private Date createAt;
 
 }
